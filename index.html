@@ -98,7 +98,7 @@
       box-shadow: 0 6px 0 var(--ink);
     }
 
-    /* Main Illustrated Card Container (Matches 3:4 Artwork) */
+    /* Main Illustrated Card Container */
     .storybook-frame {
       position: relative;
       width: 100%;
@@ -118,7 +118,7 @@
       top: 12px;
       right: 12px;
       z-index: 25;
-      background: rgba(252, 248, 238, 0.9);
+      background: rgba(252, 248, 238, 0.92);
       border: 1.5px solid var(--ink);
       color: var(--ink);
       padding: 4px 11px;
@@ -130,7 +130,7 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
 
-    /* 25 Doors Positioned Precisely Inside the Painted Frame */
+    /* 25 Doors Positioned Inside the Painted Frame */
     .grid-area {
       position: absolute;
       top: 21.5%;
@@ -163,7 +163,6 @@
       user-select: none;
     }
 
-    /* Inner Stitched Line */
     .door::before {
       content: "";
       position: absolute;
@@ -172,7 +171,6 @@
       pointer-events: none;
     }
 
-    /* Brass Doorknob on Right Edge */
     .door::after {
       content: "";
       position: absolute;
@@ -187,7 +185,6 @@
       box-shadow: 0 1px 1px rgba(0,0,0,0.45);
     }
 
-    /* Left Hinges */
     .hinge-top, .hinge-bot {
       position: absolute;
       left: -2px;
@@ -199,7 +196,6 @@
     .hinge-top { top: 18%; }
     .hinge-bot { bottom: 18%; }
 
-    /* Alternating Pine & Cranberry Doors Matching Reference */
     .door.pine {
       background: linear-gradient(150deg, #658457 0%, var(--pine) 58%, var(--pine-dark) 100%);
     }
@@ -232,7 +228,7 @@
       opacity: 0.92;
     }
 
-    /* Clickable Invisible Hotspots Over Painted Bells, Holly & Stars */
+    /* Clickable Invisible Hotspots Over Painted Bells & Holly */
     .blessing-hotspot {
       position: absolute;
       width: 40px;
@@ -259,7 +255,6 @@
       text-shadow: 0 0 6px var(--ink);
     }
 
-    /* Subtle Blessing Counter Bar Below Frame */
     .bottom-status {
       width: 100%;
       max-width: 540px;
@@ -422,9 +417,8 @@
 
   <canvas id="snow-canvas"></canvas>
 
-  <audio id="bg-music" loop>
-    <source src="music/advent-carol.mp3" type="audio/mpeg">
-  </audio>
+  <!-- Make sure your file inside music/ is named advent-carol.mp3 -->
+  <audio id="bg-music" src="music/advent-carol.mp3" preload="auto" loop></audio>
 
   <!-- Welcome Overlay -->
   <div id="welcome-overlay">
@@ -443,7 +437,7 @@
   </div>
 
   <div class="bottom-status">
-    <span id="blessing-counter">Tap hidden bells, holly & stars to discover blessings (0 of 6 found)</span>
+    <span id="blessing-counter">Tap hidden bells & holly to discover blessings (0 of 6 found)</span>
   </div>
 
   <!-- Daily Comic Modal -->
@@ -453,7 +447,7 @@
       <h2 class="modal-day-title" id="modal-title">Day 1</h2>
 
       <div class="comic-controls">
-        <span id="panel-indicator">Panel 1 of 1</span>
+        <span id="panel-indicator">Panel 1 of 4</span>
         <button class="pill-btn" id="layout-toggle" onclick="toggleComicLayout()">View All Panels</button>
       </div>
 
@@ -486,25 +480,37 @@
 
   <script>
     // ==========================================
-    // 1. EDIT YOUR 25 DAYS HERE
+    // 1. EDIT YOUR 25 DAYS HERE (4 Panels Each)
     // ==========================================
+    // Supports both .jpeg and .jpg (match exact filenames in your comics/ folder)
     const ADVENT_DAYS = [
       {
         day: 1,
         title: "Day 1: The Journey Begins",
-        panels: ["comicsday1-1.jpeg", "comicsday1-2.jpeg", "comicsday1-3.jpeg", "comicsday1-4.jpeg"],
-        verse: "The people who walked in the darkness have seen a great light; those who dwelt in the land of deep darkness, on them has light shined.",
+        panels: [
+          "comics/day1-1.jpeg",
+          "comics/day1-2.jpeg",
+          "comics/day1-3.jpeg",
+          "comics/day1-4.jpeg"
+        ],
+        verse: "Add your chosen Scripture passage for Day 1 here.",
         ref: "Isaiah 9:2",
         task: "Light a candle tonight and pray for someone who feels lonely."
       },
       {
         day: 2,
         title: "Day 2: Quiet Preparation",
-        panels: ["comics/day2-1.jpg"],
+        panels: [
+          "comics/day2-1.jpeg",
+          "comics/day2-2.jpeg",
+          "comics/day2-3.jpeg",
+          "comics/day2-4.jpeg"
+        ],
         verse: "Add your chosen Scripture passage for Day 2 here.",
         ref: "Luke 1:38",
         task: "Spend 5 minutes in complete silence without your phone."
       }
+      // Copy and paste the block above for Days 3 through 25!
     ];
 
     for (let i = ADVENT_DAYS.length + 1; i <= 25; i++) {
@@ -521,7 +527,6 @@
     // ==========================================
     // 2. HIDDEN BLESSINGS ON THE PAINTED ORNAMENTS
     // ==========================================
-    // Positioned directly over the bells, holly, and stars in bg-storybook.jpg
     const HIDDEN_BLESSINGS = [
       { id: "b1", icon: "🔔", top: "26%", left: "3%", quote: "Add your favorite Catholic saint quote or reflection here.", author: "— St. Thérèse of Lisieux" },
       { id: "b2", icon: "🔔", top: "25%", right: "1%", quote: "Add a second hidden quote or verse here.", author: "— St. Francis of Assisi" },
@@ -532,7 +537,7 @@
     ];
 
     // ==========================================
-    // APP LOGIC (Strict Day-by-Day Unlocking)
+    // APP LOGIC
     // ==========================================
     let musicPlaying = false;
     let currentDayObj = null;
@@ -543,21 +548,23 @@
     const foundBlessings = JSON.parse(localStorage.getItem("advent_blessings") || "{}");
 
     function getUnlockedMaxDay() {
-      // Secret creator mode: add ?preview=true to your URL to unlock all 25 days
+      // Secret creator preview: open your link with ?preview=true to unlock all 25 days
       if (new URLSearchParams(window.location.search).get("preview") === "true") return 25;
 
       const now = new Date();
       if (now.getMonth() === 11) return Math.min(now.getDate(), 25);
       return 0; // Keeps all doors locked for everyone else until December 1st
     }
+
     function renderCalendar() {
       const grid = document.getElementById("calendar-grid");
       grid.innerHTML = "";
       const maxDay = getUnlockedMaxDay();
+      const isPreview = new URLSearchParams(window.location.search).get("preview") === "true";
 
       ADVENT_DAYS.forEach(item => {
         const isUnlocked = item.day <= maxDay;
-        const isToday = item.day === maxDay;
+        const isToday = item.day === maxDay && !isPreview;
         const isDone = !!completedTasks[item.day];
 
         const door = document.createElement("div");
@@ -682,15 +689,30 @@
       overlay.style.opacity = "0";
       setTimeout(() => overlay.style.display = "none", 500);
       const audio = document.getElementById("bg-music");
-      audio.volume = 0.35;
-      audio.play().then(() => { musicPlaying = true; updateMusicBtn(); }).catch(() => {});
+      audio.volume = 0.4;
+      audio.play().then(() => {
+        musicPlaying = true;
+        updateMusicBtn();
+      }).catch((err) => {
+        console.warn("Audio could not auto-start:", err);
+      });
     }
 
     function toggleMusic() {
       const audio = document.getElementById("bg-music");
-      if (musicPlaying) { audio.pause(); musicPlaying = false; }
-      else { audio.play().catch(() => {}); musicPlaying = true; }
-      updateMusicBtn();
+      if (musicPlaying) {
+        audio.pause();
+        musicPlaying = false;
+        updateMusicBtn();
+      } else {
+        audio.volume = 0.4;
+        audio.play().then(() => {
+          musicPlaying = true;
+          updateMusicBtn();
+        }).catch((err) => {
+          alert("Could not play music/advent-carol.mp3. Check that the file in your GitHub music/ folder is named advent-carol.mp3 (all lowercase).");
+        });
+      }
     }
 
     function updateMusicBtn() {

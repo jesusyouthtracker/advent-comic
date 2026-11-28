@@ -492,7 +492,7 @@
       {
         day: 1,
         title: "Day 1: The Journey Begins",
-        panels: ["comics/day1-1.jpg", "comics/day1-2.jpg"],
+        panels: ["comics/day1-1.jpg", "comics/day1-2.jpg", "comics/day1-3.jpg", "comics/day1-4.jpg"],
         verse: "Add your chosen Scripture passage for Day 1 here.",
         ref: "Isaiah 9:2",
         task: "Light a candle tonight and pray for someone who feels lonely."
@@ -543,12 +543,13 @@
     const foundBlessings = JSON.parse(localStorage.getItem("advent_blessings") || "{}");
 
     function getUnlockedMaxDay() {
-      const now = new Date();
-      // Unlocks 1 day at a time in December (Month index 11)
-      if (now.getMonth() === 11) return Math.min(now.getDate(), 25);
-      return 0; // All doors stay locked until December 1st
-    }
+      // Secret creator mode: add ?preview=true to your URL to unlock all 25 days
+      if (new URLSearchParams(window.location.search).get("preview") === "true") return 25;
 
+      const now = new Date();
+      if (now.getMonth() === 11) return Math.min(now.getDate(), 25);
+      return 0; // Keeps all doors locked for everyone else until December 1st
+    }
     function renderCalendar() {
       const grid = document.getElementById("calendar-grid");
       grid.innerHTML = "";
